@@ -1,0 +1,8 @@
+---
+- import_playbook: update.yml
+- import_playbook: base.yml
+- import_playbook: nodered.yml
+- import_playbook: jupyter.yml
+- import_playbook: Blockly-gpio.yml
+- import_playbook: cockpit.yml
+...

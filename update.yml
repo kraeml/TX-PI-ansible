@@ -1,0 +1,34 @@
+---
+- hosts: tx_pis
+  tasks:
+    - name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+      become: yes
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade tx-pi
+      become: yes
+      apt:
+        upgrade: dist
+      register: dist_upgrade
+
+    - name: Reboot if upgrade
+      become: yes
+      reboot:
+        reboot_timeout: 3600
+        pre_reboot_delay: 5
+        post_reboot_delay: 10
+      when: dist_upgrade is changed
+
+    - name: Install packages
+      become: yes
+      apt:
+        name:
+          - vim
+
+    - name: Reboot if upgrade
+      become: yes
+      apt:
+        autoremove: yes
+...

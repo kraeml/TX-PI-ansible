@@ -1,0 +1,20 @@
+---
+- hosts: tx_pis
+  roles:
+    - role: escalate.docker
+      tags: docker
+      become: yes
+  tasks:
+    - name: "{{ansible_user}} is in docker group"
+      become: yes
+      user:
+        name: "{{ansible_user}}"
+        groups: docker
+        append: yes
+
+    - name: Install docker python packages
+      become: yes
+      pip:
+        name:
+          - docker-compose
+...

@@ -1,0 +1,42 @@
+---
+- hosts: tx_pis
+  tasks:
+    - name: Ensure raspberry dependencies are installed
+      become: yes
+      apt:
+        name:
+          - python3-dev
+          - python3-gpiozero
+          - python3-pip
+          - python3-websocket
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Make sure that Raspbian 10 (Buster) has the python pip dependencies installed
+      become: yes
+      pip:
+        executable: pip3
+        name:
+          - websockets
+
+    - name: Download this repository
+      git:
+        dest: "{{ansible_user_dir}}/Blockly-gPIo"
+        repo: https://github.com/GrazerComputerClub/Blockly-gPIo.git
+        update: yes
+
+    - name: Create webdirectory
+      become: yes
+      file:
+        path: /var/www/Blockly-gPIo
+        state: directory
+        owner: ftc
+        group: ftc
+
+    - name: Copy html files for Blockly-gPIo
+      become: yes
+      shell: "{{item}}"
+      with_items:
+        - "cp -r {{ansible_user_dir}}/Blockly-gPIo/public/* /var/www/Blockly-gPIo/"
+        - chown -R ftc:ftc /var/www/Blockly-gPIo
+...

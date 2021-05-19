@@ -1,0 +1,13 @@
+---
+- hosts: tx_pis
+  tasks:
+    - name: Ensure raspberry dependencies are installed
+      become: yes
+      apt:
+        name:
+          - cockpit
+          - cockpit-docker
+          - screenfetch
+        update_cache: yes
+        cache_valid_time: 3600
+...

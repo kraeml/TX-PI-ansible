@@ -1,0 +1,13 @@
+---
+- hosts: tx_pis
+  vars:
+    nvm_install_script_version: "0.38.0"
+    nvm_node_version: "14.17.0"
+
+  roles:
+    - role: grzegorznowak.nvm_node
+      become: yes
+
+  #In Task you could install with
+  #sudo su -c 'nvm install 10' -
+...

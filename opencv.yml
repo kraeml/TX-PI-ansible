@@ -1,0 +1,11 @@
+---
+- hosts: tx_pis
+  tasks:
+    - name: Install opencv
+      become: yes
+      apt:
+        name:
+          - python3-opencv
+        update_cache: yes
+        cache_valid_time: 3600
+...

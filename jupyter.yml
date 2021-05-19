@@ -1,0 +1,128 @@
+---
+- import_playbook: nvm.yml
+
+- hosts: tx_pis
+
+  tasks:
+    - name: Ensure raspberry dependencies are installed
+      become: yes
+      apt:
+        name:
+          - nodejs
+          - npm
+        update_cache: yes
+        cache_valid_time: 3600
+      tags:
+        - install
+
+    - name: Install virtualenv
+      pip:
+        executable: pip3
+        name:
+          - virtualenv
+
+    - name: Install jupyter requirements
+      pip:
+        virtualenv: "{{ansible_user_dir}}/jupyter/venv"
+        virtualenv_python: python3
+        name:
+          - RPI.GPIO
+          - jupyterlab
+          - calysto_bash
+          - jupyterlab_gitlab
+          - jupyterlab-git
+          - jupyterlab-spellchecker
+          - sos
+          - jupyterlab-sos
+          - sos-notebook
+          - jupyter_micropython_kernel
+
+          #- bash_kernel
+          #- sshkernel
+          #- RISE
+          #- jupyter_contrib_nbextensions
+          # pixiedust_node extension
+          #- pixiedust_node
+          #- matplotlib
+          #- jupyterlab_git
+          #- jupyterlab_gitlab
+          #- octave_kernel
+          #- bqplot
+          #- pyyaml
+          #- sos-papermill
+          #- sos-r
+          #- markdown-kernel
+          #- ipywidgets
+          #- jupyros
+
+    - name: Jupyter directoies
+      file:
+        path: "{{ansible_user_dir}}/{{item}}"
+        state: directory
+      with_items:
+        - notebooks
+        - .jupyter
+
+    - name: Config jupyter lab
+      template:
+        dest: "{{ansible_user_dir}}/.jupyter/{{item}}"
+        src: "jupyter/{{item}}"
+      with_items:
+        - jupyter_lab_config.py
+        - jupyter_server_config.json
+        - env
+      notify:
+        - restart_jupyter
+        - rebuild_jupyter
+
+    - name: Config service jupyter lab
+      become: yes
+      template:
+        dest: "/lib/systemd/system/jupyter.service"
+        src: "jupyter/jupyter.service"
+      notify:
+        - restart_jupyter
+        - rebuild_jupyter
+
+    #ToDo install kernel
+    - name: Ensure sos kernel is installed
+      become: yes
+      command: /home/pi/jupyter/venv/bin/python -m sos_notebook.install
+      args:
+        creates: /home/pi/.local/share/jupyter/kernels/sos
+      notify:
+        - restart_jupyter
+        - rebuild_jupyter
+      tags:
+        - jupyter_base
+
+    - name: Enable sos
+      become: yes
+      shell: "NODE_OPTIONS=--max_old_space_size=3072 {{ansible_user_dir}}/jupyter/venv/bin/jupyter labextension install {{item}}"
+      with_items:
+        - transient-display-data
+        - jupyterlab-sos
+
+    - name: Ensure jupyter_micropython_kernel kernel is installed
+      become: yes
+      command: /home/pi/jupyter/venv/bin/python -m jupyter_micropython_kernel.install
+      args:
+        creates: /home/pi/.local/share/jupyter/kernels/micropython
+      notify:
+        - restart_jupyter
+        - rebuild_jupyter
+      tags:
+        - jupyter_base
+
+  handlers:
+    - name: restart_jupyter
+      become: yes
+      service:
+        name: jupyter
+        enabled: yes
+        state: restarted
+
+    # ToDo run in virtualenv
+    - name: rebuild_jupyter
+      command: "NODE_OPTIONS='--max_old_space_size=3072' {{ansible_user_dir}}/jupyter/venv/bin/jupyter lab build"
+...

@@ -1,0 +1,34 @@
+---
+- hosts: tx_pis
+  gather_facts: no
+  tasks:
+    - name: Set LD_LIBRARY_PATH
+      become: yes
+      copy:
+        dest: /etc/profile.d/nextcloudcmd.sh
+        content: |
+          LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/arm-linux-gnueabihf
+
+    - name: Configure dynamic linker/loader
+      become: yes
+      lineinfile:
+        path: "{{item}}"
+        line: /usr/local/lib/arm-linux-gnueabihf
+        create: yes
+      register: output
+      with_items:
+        - /etc/ld.so.conf.d/arm-linux-gnueabihf.conf
+        - /etc/ld.so.conf.d/x86_64-linux-gnu.conf
+
+    - name: Load dynamic linker/loader
+      become: yes
+      command: /sbin/ldconfig
+      when: output is changed
+
+    - name: Copy nextcloudcmd
+      become: yes
+      copy:
+        dest: /usr/local/bin/nextcloudcmd
+        src: nextcloudcmd
+        mode: 0755
+...
