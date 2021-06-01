@@ -3,6 +3,10 @@
   tags:
     - docker
 
+#- import_playbook: mariadb.yml
+#  tags:
+#    - mariadb
+
 - hosts: tx_pis
   #vars:
   #  nvm_install_script_version: "0.38.0"
@@ -10,8 +14,6 @@
 # Nodered nodes
 # Todo Dockerfile as Template with vars
 #RUN npm install \
-#	node-red-dashboard \
-#	node-red-node-mysql \
 #	node-red-node-openweathermap \
 #	node-red-contrib-fsm \
 #	node-red-contrib-persistent-fsm \
@@ -23,7 +25,7 @@
 #- node-red-contrib-opcua
 #- node-red-contrib-iiot-opcua
 #- node-red-contrib-solar-power-forecast
-#- node-red-contrib-finite-statemachine
+
   #roles:
   #  - role: grzegorznowak.nvm_node
   #    become: yes
@@ -34,6 +36,7 @@
       apt:
         name:
           - pigpiod
+          - sqlite3
         update_cache: yes
         cache_valid_time: 3600
       tags:
@@ -51,7 +54,6 @@
         - pigpiod_service
 
     - name: Enable pigpiod as service
-
       become: yes
       service:
         name: pigpiod.service
@@ -84,22 +86,26 @@
       register: output
 
     - name: Build nodered image
+      become: yes
       command: docker build -t tx-pi/nodered .
       args:
         chdir: "{{ansible_user_dir}}/nodered"
       when: output is changed
 
     - name: Docker cleanup
+      become: yes
       command: docker system prune --force
       when: output is changed
 
     - name: Remove old node red
+      become: yes
       docker_compose:
         project_src: "{{ansible_user_dir}}/nodered/"
         state: absent
       when: output is changed
 
     - name: Run node red
+      become: yes
       docker_compose:
         project_src: "{{ansible_user_dir}}/nodered/"
 
@@ -111,13 +117,13 @@
         enabled: yes
         state: started
 
-    - name: rebuild_node_red
-      command: npm rebuild
-      args:
-        chdir: "{{ansible_user_dir}}/nodered"
+    #- name: rebuild_node_red
+    #  command: npm rebuild
+    #  args:
+    #    chdir: "{{ansible_user_dir}}/nodered"
 
-    - name: restart_nodered
-      docker_compose:
-        project_src: "{{ansible_user_dir}}/nodered/"
-        restarted: True
+    #- name: restart_nodered
+    #  docker_compose:
+    #    project_src: "{{ansible_user_dir}}/nodered/"
+    #    restarted: True
 ...

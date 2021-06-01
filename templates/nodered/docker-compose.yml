@@ -13,14 +13,53 @@ services:
       user: 'node-red:node-red'
       group_add:
         - dialout
+      environment:
+        - TZ=Europe/Berlin
+
     broker:
       image: eclipse-mosquitto
       restart: unless-stopped
       command: mosquitto -c /mosquitto-no-auth.conf
       networks:
         - nodered
+      links:
+        - "mariadb:mariadb"
       ports:
         - "1883:1883"
+
+    mariadb:
+      image: linuxserver/mariadb
+      restart: always
+      ports:
+        - "3306:3306"
+        - "33060:33060"
+      environment:
+        - PUID=1000
+        - PGID=1000
+        - MYSQL_ROOT_PASSWORD=root_password
+        - TZ=Europe/Berlin
+        - MYSQL_USER=username
+        - MYSQL_PASSWORD=passwor
+
+      volumes:
+        - mariadb_data_container:/var/lib/mysql
+        - ./config:/config
+
+    myadmin:
+      image: ebspace/armhf-phpmyadmin
+      volumes:
+        - ./config:/etc/phpmyadmin/config.user.inc.php
+      restart: always
+      ports:
+        - 8085:80
+      depends_on:
+        - mariadb
+      links:
+        - mariadb
+      restart: always
+
+volumes:
+  mariadb_data_container:
 
 networks:
   nodered:
