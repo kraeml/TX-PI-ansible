@@ -21,13 +21,7 @@
         post_reboot_delay: 10
       when: dist_upgrade is changed
 
-    - name: Install packages
-      become: yes
-      apt:
-        name:
-          - vim
-
-    - name: Reboot if upgrade
+    - name: Remove old packages if upgrade
       become: yes
       apt:
         autoremove: yes
