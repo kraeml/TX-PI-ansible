@@ -1,9 +1,20 @@
 ---
+- hosts: tx_pis
+  gather_facts: no
+
+  tasks:
+    - name: Ensur /usr/bin/node is absent
+      become: yes
+      file:
+        path: /usr/bin/node
+        state: absent
+
 - import_playbook: nvm.yml
 
 - hosts: tx_pis
 
   tasks:
+    # ToDo kann weg wegen nvm oder besser auf aktuelle node einrichten
     - name: Ensure raspberry dependencies are installed
       become: yes
       apt:

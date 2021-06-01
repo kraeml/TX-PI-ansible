@@ -1,3 +1,4 @@
 ---
 - src: "escalate.docker"
+- src: "grzegorznowak.nvm_node"
 ...
