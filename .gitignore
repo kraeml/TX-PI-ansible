@@ -1,2 +1,4 @@
+*.zip
+*.img
 .roles
-venv
+roboprocoding.yml
