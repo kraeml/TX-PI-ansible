@@ -1,8 +1,20 @@
 ---
 - import_playbook: update.yml
 - import_playbook: base.yml
+# ToDo nicht als Docker
 - import_playbook: nodered.yml
+# ToDo jupyter lab build wird nicht gefunden.
+# Nicht als virtualenv
 - import_playbook: jupyter.yml
+# Grazer Linuxtage
 - import_playbook: Blockly-gpio.yml
+# Verwartung per Browser
 - import_playbook: cockpit.yml
+# ToDo es fehlen die Bibliotheken.
+# Datenabgleich via nextcloud
+#- import_playbook: nextcloudcmd.yml
+# Bildverarbeitung
+- import_playbook: opencv.yml
+# ROS mit Docker
+#- import_playbook: ros.yml
 ...
