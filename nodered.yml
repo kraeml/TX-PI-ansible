@@ -3,33 +3,7 @@
   tags:
     - docker
 
-#- import_playbook: mariadb.yml
-#  tags:
-#    - mariadb
-
 - hosts: tx_pis
-  #vars:
-  #  nvm_install_script_version: "0.38.0"
-  #  nvm_node_version: "10.24.1"
-# Nodered nodes
-# Todo Dockerfile as Template with vars
-#RUN npm install \
-#	node-red-node-openweathermap \
-#	node-red-contrib-fsm \
-#	node-red-contrib-persistent-fsm \
-#	node-red-contrib-finite-statemachine \
-#	node-red-node-arduino
-#- node-red-contrib-bigtimer
-#- node-red-node-mongodb
-#- node-red-contrib-looptimer
-#- node-red-contrib-opcua
-#- node-red-contrib-iiot-opcua
-#- node-red-contrib-solar-power-forecast
-
-  #roles:
-  #  - role: grzegorznowak.nvm_node
-  #    become: yes
-
   tasks:
     - name: Ensure raspberry dependencies are installed
       become: yes
