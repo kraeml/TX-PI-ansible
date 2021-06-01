@@ -16,8 +16,8 @@
         - install
 
     - name: Install virtualenv
-      pip:
-        executable: pip3
+      become: yes
+      apt:
         name:
           - virtualenv
 
