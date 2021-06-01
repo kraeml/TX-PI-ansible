@@ -24,7 +24,7 @@
         state: present
     register: dphys
     notify:
-        - dphy_swapfile
+        - dphys_swapfile
 
   - name: Ensure swap file is 1GiB
     stat:
@@ -39,24 +39,24 @@
         state: stopped
     when: dphys is changed or not swap_file.stat.exists or swap_file.stat.size!=1073741824
     notify:
-        - dphy_swapfile
+        - dphys_swapfile
 
   - name: Ensure swap-file exists
     become: yes
     command: dd if=/dev/zero of=/var/swap count=1024 bs=1MiB
     when: not swap_file.stat.exists or swap_file.stat.size!=1073741824
     notify:
-        - dphy_swapfile
+        - dphys_swapfile
 
   - name: Make swap
     become: yes
     command: mkswap /var/swap
     when: not swap_file.stat.exists or swap_file.stat.size!=1073741824
     notify:
-        - dphy_swapfile
+        - dphys_swapfile
 
   handlers:
-  - name: dphy_swapfile
+  - name: dphys_swapfile
     become: yes
     service:
         name: dphys-swapfile
