@@ -36,6 +36,7 @@
           - jupyterlab-sos
           - sos-notebook
           - jupyter_micropython_kernel
+          - pigpio
 
           #- bash_kernel
           #- sshkernel
@@ -73,7 +74,7 @@
         - env
       notify:
         - restart_jupyter
-        - rebuild_jupyter
+        #- rebuild_jupyter
 
     - name: Config service jupyter lab
       become: yes
@@ -82,17 +83,18 @@
         src: "jupyter/jupyter.service"
       notify:
         - restart_jupyter
-        - rebuild_jupyter
+        #<- rebuild_jupyter
 
-    #ToDo install kernel
+    #ToDo install more kernels
     - name: Ensure sos kernel is installed
       become: yes
       command: /home/pi/jupyter/venv/bin/python -m sos_notebook.install
       args:
-        creates: /home/pi/.local/share/jupyter/kernels/sos
+        creates: /usr/local/share/jupyter/kernels/sos
       notify:
         - restart_jupyter
-        - rebuild_jupyter
+        #- rebuild_jupyter
+      register: output
       tags:
         - jupyter_base
 
@@ -102,17 +104,28 @@
       with_items:
         - transient-display-data
         - jupyterlab-sos
+      when: output is changed
 
     - name: Ensure jupyter_micropython_kernel kernel is installed
       become: yes
       command: /home/pi/jupyter/venv/bin/python -m jupyter_micropython_kernel.install
       args:
-        creates: /home/pi/.local/share/jupyter/kernels/micropython
+        creates: /usr/local/share/jupyter/kernels/micropython
       notify:
         - restart_jupyter
-        - rebuild_jupyter
+        #- rebuild_jupyter
       tags:
         - jupyter_base
+
+    #- name: rebuild_jupyter
+    #  shell:
+    #  args:
+    #    cmd: >
+    #      "sudo chown -R {{ansible_user}}:{{ansible_user_gid}} {{ansible_user_dir}}/jupyter &&
+    #      {{ansible_user_dir}}/jupyter/venv/bin/jupyter lab build"
+    #    executable: /bin/bash
+    #  tags:
+    #    - testing
 
   handlers:
     - name: restart_jupyter
@@ -123,6 +136,8 @@
         state: restarted
 
     # ToDo run in virtualenv
-    - name: rebuild_jupyter
-      command: "NODE_OPTIONS='--max_old_space_size=3072' {{ansible_user_dir}}/jupyter/venv/bin/jupyter lab build"
+    #- name: rebuild_jupyter
+    #  shell: >
+    #    "sudo chown -R {{ansible_user}}:{{ansible_user_gid}} {{ansible_user_dir}}/jupyter &&
+    #    export NODE_OPTIONS=--max_old_space_size=3072 {{ansible_user_dir}}/jupyter/venv/bin/jupyter lab build"
 ...
