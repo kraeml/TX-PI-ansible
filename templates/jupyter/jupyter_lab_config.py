@@ -120,7 +120,7 @@
 #  module, unless it is overridden using the --browser (ServerApp.browser)
 #  configuration option.
 #  Default: False
-# c.ExtensionApp.open_browser = False
+c.ExtensionApp.open_browser = False
 
 ## Settings that will passed to the server.
 #  Default: {}
@@ -842,7 +842,7 @@ c.ServerApp.ip = '0.0.0.0'
 #
 #  The string should be of the form type:salt:hashed-password.
 #  Default: ''
-# c.ServerApp.password = ''
+c.ServerApp.password = u'argon2:$argon2id$v=19$m=10240,t=10,p=8$ZS38CSxI9ZR9yFfFWBOmtA$lGT5M33coyhLBTjuhISByA'
 
 ## Forces users to use a password for the Jupyter server. This is useful in a
 #  multi user environment, for instance when everybody in the LAN can access each

@@ -1,4 +1,4 @@
-# service name:     jupyter.service 
+# service name:     jupyter.service
 # path:             /lib/systemd/system/jupyter.service
 
 # After Ubuntu 16.04, Systemd becomes the default.
@@ -16,8 +16,9 @@ EnvironmentFile=/home/pi/.jupyter/env
 # Jupyter Notebook: change PATHs as needed for your system
 #ExecStart=/usr/local/bin/jupyter-notebook --config=/home/pi/.jupyter/jupyter_notebook_config.py
 
-# In case you want to use jupyter-lab 
+# In case you want to use jupyter-lab
 ExecStart=/home/pi/jupyter/venv/bin/jupyter-lab --config=/home/pi/.jupyter/jupyter_lab_config.py
+#ExecStart=/usr/local/bin/jupyter-lab --config=/home/pi/.jupyter/jupyter_lab_config.py
 
 User=pi
 Group=pi
@@ -28,4 +29,3 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
-

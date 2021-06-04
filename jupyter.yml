@@ -13,31 +13,34 @@
 
 - hosts: tx_pis
 
-  tasks:
-    # ToDo kann weg wegen nvm oder besser auf aktuelle node einrichten
-    - name: Ensure raspberry dependencies are installed
-      become: yes
-      apt:
-        name:
-          - nodejs
-          - npm
-        update_cache: yes
-        cache_valid_time: 3600
-      tags:
-        - install
+  vars:
+    venv: "{{ansible_user_dir}}/jupyter/venv"
 
-    - name: Install virtualenv
+  tasks:
+    - name: Install jupyter dependencies
       become: yes
       apt:
         name:
+          # Needed by sos
+          - libatlas-base-dev
+          # GPIO raspberry
+          # Normaly installed in base.yml
+          - pigpiod
+          - gpiod
+          # Build jupyter
+          - libffi-dev
+          # Virtualenv for jupyter-lab
           - virtualenv
 
-    - name: Install jupyter requirements
+    - name: Install jupyter virtualenv
       pip:
-        virtualenv: "{{ansible_user_dir}}/jupyter/venv"
+        virtualenv: "{{venv}}"
         virtualenv_python: python3
+        #executable: pip3
         name:
           - RPI.GPIO
+          - setuptools
+          - cffi
           - jupyterlab
           - calysto_bash
           - jupyterlab_gitlab
@@ -48,9 +51,10 @@
           - sos-notebook
           - jupyter_micropython_kernel
           - pigpio
+          - numpy
+          - sshkernel
 
           #- bash_kernel
-          #- sshkernel
           #- RISE
           #- jupyter_contrib_nbextensions
           # pixiedust_node extension
@@ -85,7 +89,7 @@
         - env
       notify:
         - restart_jupyter
-        #- rebuild_jupyter
+        - rebuild_jupyter
 
     - name: Config service jupyter lab
       become: yes
@@ -94,24 +98,22 @@
         src: "jupyter/jupyter.service"
       notify:
         - restart_jupyter
-        #<- rebuild_jupyter
+        - rebuild_jupyter
 
-    #ToDo install more kernels
     - name: Ensure sos kernel is installed
-      become: yes
-      command: /home/pi/jupyter/venv/bin/python -m sos_notebook.install
+      command: "{{venv}}/bin/python -m sos_notebook.install"
       args:
         creates: /usr/local/share/jupyter/kernels/sos
       notify:
         - restart_jupyter
-        #- rebuild_jupyter
+        - rebuild_jupyter
       register: output
       tags:
         - jupyter_base
 
     - name: Enable sos
       become: yes
-      shell: "NODE_OPTIONS=--max_old_space_size=3072 {{ansible_user_dir}}/jupyter/venv/bin/jupyter labextension install {{item}}"
+      shell: "NODE_OPTIONS=--max_old_space_size=3072 {{venv}}/bin/jupyter labextension install {{item}}"
       with_items:
         - transient-display-data
         - jupyterlab-sos
@@ -119,24 +121,14 @@
 
     - name: Ensure jupyter_micropython_kernel kernel is installed
       become: yes
-      command: /home/pi/jupyter/venv/bin/python -m jupyter_micropython_kernel.install
+      command: "{{venv}}/bin/python -m jupyter_micropython_kernel.install"
       args:
         creates: /usr/local/share/jupyter/kernels/micropython
       notify:
         - restart_jupyter
-        #- rebuild_jupyter
+        - rebuild_jupyter
       tags:
         - jupyter_base
-
-    #- name: rebuild_jupyter
-    #  shell:
-    #  args:
-    #    cmd: >
-    #      "sudo chown -R {{ansible_user}}:{{ansible_user_gid}} {{ansible_user_dir}}/jupyter &&
-    #      {{ansible_user_dir}}/jupyter/venv/bin/jupyter lab build"
-    #    executable: /bin/bash
-    #  tags:
-    #    - testing
 
   handlers:
     - name: restart_jupyter
@@ -146,9 +138,7 @@
         enabled: yes
         state: restarted
 
-    # ToDo run in virtualenv
-    #- name: rebuild_jupyter
-    #  shell: >
-    #    "sudo chown -R {{ansible_user}}:{{ansible_user_gid}} {{ansible_user_dir}}/jupyter &&
-    #    export NODE_OPTIONS=--max_old_space_size=3072 {{ansible_user_dir}}/jupyter/venv/bin/jupyter lab build"
+    - name: rebuild_jupyter
+      become: yes
+      shell: NODE_OPTIONS=--max_old_space_size=3072 {{venv}}/bin/jupyter lab build
 ...
