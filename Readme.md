@@ -8,6 +8,7 @@ __Ziel__:
 	* NodeRed (Javascript)
 	* Cockpit (Sysadmintool)
 	* Blockly GPIO
+	* ROS Melodic
 
 * Broserbasierend von TX-PI
 	* Brickly FT (Blockly)
@@ -106,7 +107,5 @@ __Ziel__:
 		* python3-opencv
 
 * __ROS__
-	* ToDo
-		* Ros als Docker
-		* Jupyter Ros
-		* Blockly Ros
+	* Jupyter Ros
+	* Blockly Ros
