@@ -16,5 +16,5 @@
 # Bildverarbeitung
 - import_playbook: opencv.yml
 # ROS mit Docker
-#- import_playbook: ros.yml
+- import_playbook: ros.yml
 ...

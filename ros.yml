@@ -1,0 +1,74 @@
+---
+- hosts: tx_pis
+  tasks:
+    - name: Add ros apt key by id from keyserver
+      become: yes
+      command: apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+      #  url: http://keyserver.ubuntu.com
+      #  id: C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+      #  state: present
+      tags:
+        - testing
+
+    - name: Add ros repository into sources list.
+      become: yes
+      apt_repository:
+        repo: deb http://packages.ros.org/ros/ubuntu {{ansible_distribution_release}} main
+        filename: /etc/apt/sources.list.d/ros-latest.list
+        update_cache: yes
+      tags:
+        - testing
+
+    - name: Install rosdep
+      become: yes
+      apt:
+        name:
+          # ToDo with pyhton3
+          - python-rosdep
+          - python-rosinstall-generator
+          - python-wstool
+          - python-rosinstall
+          - build-essential
+          - cmake
+
+    - name: Ensure ros soruce list exists
+      stat:
+        path: /etc/ros/rosdep/sources.list.d/20-default.list
+      register: output
+
+    - debug:
+        var: output
+        verbosity: 1
+
+    - name: ros init
+      command: "{{item}}"
+      with_items:
+        - sudo rosdep init
+        - rosdep update
+      when: not output.stat.exists
+
+
+    - name: create workingspace
+      file:
+        path: "{{ansible_user_dir}}/ros_catkin_ws"
+        state: directory
+
+    - name: ROS package, build, and communication libraries. No GUI tools.
+      shell: "source /opt/ros/melodic/setup.bash; {{item.command}}"
+      args:
+        chdir: "{{ansible_user_dir}}/ros_catkin_ws"
+        creates: "{{item.creates}}"
+        executable: /bin/bash
+      with_items:
+        - command: rosinstall_generator ros_comm --rosdistro melodic --deps --wet-only --tar > melodic-ros_comm-wet.rosinstall
+          creates: ToDo
+        - command: wstool init src melodic-ros_comm-wet.rosinstall
+          creates: ./src/.rosinstall
+        - command: rosdep install -y --from-paths src --ignore-src --rosdistro melodic -r --os=debian:buster
+          creates: ToDo
+        - command: sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/melodic
+          creates: ToDo
+        # ToDo Better in module lineinfile
+        - command: echo "source /opt/ros/melodic/setup.bash" >> {{ansible_user_dir}}/.bashrc
+          creates: ToDo
+...
