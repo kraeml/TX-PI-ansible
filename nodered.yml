@@ -3,7 +3,28 @@
   tags:
     - docker
 
-- hosts: tx_pis
+- hosts: pi-top
+  # ToDo Nodered wurde mit Skript installiert.
+  tasks:
+    - name: Install node-red packages
+      become: yes
+      npm:
+        global: yes
+        unsafe_perm: yes
+        name:
+          - node-red-dashboard
+          - node-red-node-mysql
+          - node-red-node-openweathermap
+          - node-red-contrib-fsm
+          - node-red-contrib-persistent-fsm
+          - node-red-contrib-finite-statemachine
+          - node-red-node-arduino
+          - node-red-node-pi-gpiod
+          - node-red-contrib-home-assistant-websocket
+          - node-red-contrib-i2c
+          - node-red-node-sqli
+
+- hosts: pis
   tasks:
     - name: Ensure raspberry dependencies are installed
       become: yes
@@ -33,6 +54,16 @@
         name: pigpiod.service
         enabled: yes
 
+  handlers:
+    - name: pigpiod_service
+      become: yes
+      service:
+        name: pigpiod
+        enabled: yes
+        state: started
+
+- hosts: tx_pis
+  tasks:
     - name: Pull docker images
       become: yes
       docker_image:
@@ -83,14 +114,8 @@
       docker_compose:
         project_src: "{{ansible_user_dir}}/nodered/"
 
-  handlers:
-    - name: pigpiod_service
-      become: yes
-      service:
-        name: pigpiod
-        enabled: yes
-        state: started
 
+  #handlers:
     #- name: rebuild_node_red
     #  command: npm rebuild
     #  args:

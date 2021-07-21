@@ -1,5 +1,5 @@
 ---
-- hosts: tx_pis
+- hosts: pis
   roles:
     - role: escalate.docker
       tags: docker

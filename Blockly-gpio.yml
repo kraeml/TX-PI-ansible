@@ -19,7 +19,7 @@
         name:
           - websockets
 
-    - name: Download this repository
+    - name: Download Blockly-gPIo repository
       git:
         dest: "{{ansible_user_dir}}/Blockly-gPIo"
         repo: https://github.com/GrazerComputerClub/Blockly-gPIo.git
@@ -30,13 +30,13 @@
       file:
         path: /var/www/Blockly-gPIo
         state: directory
-        owner: ftc
-        group: ftc
+        owner: "{{ftc_user}}"
+        group: "{{ftc_group}}"
 
     - name: Copy html files for Blockly-gPIo
       become: yes
       shell: "{{item}}"
       with_items:
         - "cp -r {{ansible_user_dir}}/Blockly-gPIo/public/* /var/www/Blockly-gPIo/"
-        - chown -R ftc:ftc /var/www/Blockly-gPIo
+        - chown -R {{ftc_user}}:{{ftc_group}} /var/www/Blockly-gPIo
 ...

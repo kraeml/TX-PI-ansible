@@ -1,5 +1,5 @@
 ---
-- hosts: tx_pis
+- hosts: pis
   tasks:
     - name: Ensure raspberry dependencies are installed
       become: yes

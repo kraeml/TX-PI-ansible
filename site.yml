@@ -1,10 +1,13 @@
 ---
 - import_playbook: update.yml
+- import_playbook: swap_file.yml
 - import_playbook: base.yml
 # ToDo nicht als Docker
 - import_playbook: nodered.yml
 # ToDo jupyter lab build wird nicht gefunden.
 # Nicht als virtualenv
+- import_playbook: portainer.yml
+- import_playbook: iobroker.yml
 - import_playbook: jupyter.yml
 # Grazer Linuxtage
 - import_playbook: Blockly-gpio.yml
