@@ -1,0 +1,36 @@
+---
+- import_playbook: docker.yml
+  tags:
+    - docker
+
+- hosts: pis
+  tasks:
+    - name: Create portainer directories
+      become: yes
+      file:
+        path: "{{ansible_user_dir}}/portainer/data"
+        recurse: yes
+        state: directory
+        owner: "{{ansible_user}}"
+        group: "{{ansible_user_gid}}"
+
+    - name: Docker-compose for portainer
+      template:
+        src: "portainer/{{item}}"
+        dest: "{{ansible_user_dir}}/portainer/{{item}}"
+      with_items:
+        - docker-compose.yml
+      register: output
+
+    - name: Remove old portainer
+      become: yes
+      docker_compose:
+        project_src: "{{ansible_user_dir}}/portainer/"
+        state: absent
+      when: output is changed
+
+    - name: Run portainer
+      become: yes
+      docker_compose:
+        project_src: "{{ansible_user_dir}}/portainer/"
+...

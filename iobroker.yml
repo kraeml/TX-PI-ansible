@@ -1,0 +1,72 @@
+---
+- import_playbook: docker.yml
+  tags:
+    - docker
+
+- hosts: pis
+  tasks:
+    - name: Ensure raspberry dependencies are installed
+      become: yes
+      apt:
+        name:
+          - pigpiod
+        update_cache: yes
+        cache_valid_time: 3600
+      tags:
+        - install
+
+    - name: Configure pigpiod service
+      #ToDo listen only on docker interface and local
+      #ToDo deamon reload when changed
+      become: yes
+      replace:
+        path: /lib/systemd/system/pigpiod.service
+        regexp: 'ExecStart=/usr/bin/pigpiod -l'
+        replace: 'ExecStart=/usr/bin/pigpiod'
+      notify:
+        - pigpiod_service
+
+    - name: Enable pigpiod as service
+      become: yes
+      service:
+        name: pigpiod.service
+        enabled: yes
+
+    - name: Create iobroker directories
+      file:
+        path: "{{ansible_user_dir}}/iobroker/data"
+        recurse: yes
+        state: directory
+        owner: "{{ansible_user}}"
+        group: "{{ansible_user_gid}}"
+
+    - name: Docker-compose for iobroker
+      template:
+        src: "iobroker/{{item}}"
+        dest: "{{ansible_user_dir}}/iobroker/{{item}}"
+      with_items:
+        - docker-compose.yml
+      register: output
+
+    - name: Remove old iobroker
+      become: yes
+      docker_compose:
+        project_src: "{{ansible_user_dir}}/iobroker/"
+        state: absent
+      when: output is changed
+
+    - name: Run iobroker
+      become: yes
+      docker_compose:
+        project_src: "{{ansible_user_dir}}/iobroker/"
+      tags:
+        - testing
+
+  handlers:
+    - name: pigpiod_service
+      become: yes
+      service:
+        name: pigpiod
+        enabled: yes
+        state: started
+...

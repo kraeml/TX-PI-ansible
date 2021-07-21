@@ -1,0 +1,81 @@
+---
+- hosts: tx_pis
+  gather_facts: no
+  # sudo apt install build-essential git cmake openssl libssl-dev sqlite3 libsqlite3-dev qt5-default libqt5webkit5-dev qttools5-dev qttools5-dev-tools python-sphinx texlive-latex-base inotify-tools qt5keychain-dev doxygen extra-cmake-modules kio-dev
+  tasks:
+    # ToDo die Libs fehlen noch.
+    - name: Install build dependencies
+      become: yes
+      apt:
+        name:
+          - build-essential
+          - git
+          - cmake
+          - openssl
+          - libssl-dev
+          - sqlite3
+          - libsqlite3-dev
+          - qt5-default
+          - libqt5webkit5-dev
+          - qttools5-dev
+          - qttools5-dev-tools
+          - python-sphinx
+          - texlive-latex-base
+          - inotify-tools
+          - qt5keychain-dev
+          - doxygen
+          - extra-cmake-modules
+          - kio-dev
+
+    - name: Set LD_LIBRARY_PATH
+      become: yes
+      copy:
+        dest: /etc/profile.d/nextcloudcmd.sh
+        content: |
+          LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/arm-linux-gnueabihf
+
+    - name: Configure dynamic linker/loader
+      become: yes
+      lineinfile:
+        path: "{{item}}"
+        line: /usr/local/lib/arm-linux-gnueabihf
+        create: yes
+      register: output
+      with_items:
+        - /etc/ld.so.conf.d/arm-linux-gnueabihf.conf
+        - /etc/ld.so.conf.d/x86_64-linux-gnu.conf
+
+    - name: Load dynamic linker/loader
+      become: yes
+      command: /sbin/ldconfig
+      when: output is changed
+
+    - name: Copy nextcloudcmd
+      become: yes
+      copy:
+        dest: /usr/local/bin/nextcloudcmd
+        src: nextcloudcmd
+        mode: 0755
+
+    # ToDo
+    # nextcloud auch für öffentliche Dateien/Verzeichnisse möglich?
+    # nextcloud für Verteilen von Aufgaben/Lösungen nur zum lesen?
+    # Wenn Variablen
+    # {{nextcloud_src}}
+    # {{nextcloud_url}}
+    # {{nextcloud_dest}}
+    # {{nextcloudscript_path}}
+    # {{nextcloud_login}}
+    # {{nextcloud_password}}
+    # gesetzt dann
+    # Shellskript aus Template
+    # cloud-sync.sh
+    # cloud-sync-exclude.txt
+    # Crontab
+    # m h  dom mon dow   command
+    # 0 4 * * * {{nextcloudscript_path}}/cloud-sync.sh >/dev/null &
+    #
+    # ~/.netrc setzen
+    # Aus Template
+
+...

@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  iobroker:
+    restart: always
+    image: buanet/iobroker:latest
+    container_name: iobroker
+    hostname: iobroker
+    ports:
+      - "8081:8081"
+      - "1881:1880"
+    volumes:
+      - ./data:/opt/iobroker
+    environment:
+      - PACKAGES="sqlite3"
+      - TZ=Europe/Berlin
